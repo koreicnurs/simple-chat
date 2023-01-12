@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <div id="preloader">
+    <div class="loader"></div>
+  </div>
+
+  <div class="container container-profile">
+  </div>
+
+  <div class="container block-post">
+  </div>
+
+  <script>
+    let lastDate;
+    const container = document.querySelector('.block-post');
+    const loader = document.getElementById('preloader');
+
+    const getProfile = async () => {
+
+      loader.style.display = 'block';
+
+      const profileUrl = `http://146.185.154.90:8000/blog/koreicnurs@gmail.com/profile`;
+
+      const response = await fetch(profileUrl);
+      const profile = await response.json();
+
+      let blockUserInfo = `
+      <div class="card">
+        <div class="card-body">
+          <p class="card-title first">${profile.firstName}</p>
+          <p class="card-title last">${profile.lastName}</p>
+          <button type="button" class="btn btn-info">Edit</button>
+          <button type="button" class="btn btn-success follow">Follow</button>
+          <button type="button" class="btn btn-secondary list">List of subscribers</button>
+          <button type="button" class="btn btn-danger delete">Delet all subscribers</button>
+          <div class='text-btn'>
+            <textarea class="form-control text-profile" aria-label="With textarea" placeholder="U are happy? Chat with other!"></textarea>
+            <button type="button" class="btn btn-primary btn-send-post">Send</button>
+          </div>
+        </div>
+      </div>
+      `;
+
+      document.body.querySelector('.container-profile').insertAdjacentHTML('beforeEnd', blockUserInfo);
+
+      const btnEdit = document.querySelector('.btn-info');
+      const modal = document.createElement('div');
+      const div = document.createElement('div');
+      const userFirstName = document.querySelector('.first');
+      const userLastName = document.querySelector('.last');
+      const btnFollow = document.querySelector('.follow');
+      const btnList = document.querySelector('.list');
+      const btnDelete = document.querySelector('.delete');
+      const email = document.createElement('div');
+
+      btnDelete.addEventListener('click', async e => {
+        e.preventDefault();
+
+        const body = new URLSearchParams();
+
+        fetch('http://146.185.154.90:8000/blog/koreicnurs@gmail.com/subscribe/delete', {
+          method: 'POST',
+          body
+        });
+
+        await alert('All subs deleted!!!')
+      })
+
+      btnFollow.addEventListener('click', async e => {
+
+        e.preventDefault();
+
+        email.className = 'modal add-sub';
+
+        email.innerHTML = `
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Follow user</h5>
+                        <button type="button" class="btn-close btn-cross3" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="input-group mb-3">
+                          <input type="text" class="form-control input-email" placeholder="users's email" aria-label="Firstname">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-primary btn-send-email">Add</button>
+                      </div>
+                    </div>
+                  </div>`;
+
+        email.style.display = 'block';
+
+        document.body.querySelector('.container-profile').append(email);
+
+        const listOfSubs = document.querySelector('.list-of-subs');
+
+        const btnSendEmail = document.querySelector('.btn-send-email');
+        const inputEmail = document.querySelector('.input-email');
+
+        btnSendEmail.addEventListener('click', async e => {
+          e.preventDefault();
+
+          const body = new URLSearchParams();
+
+          body.append('email', inputEmail.value);
+
+          fetch('http://146.185.154.90:8000/blog/koreicnurs@gmail.com/subscribe/', {
+            method: 'POST',
+            body
+          });
+
+          email.style.display = 'none';
+        })
+
+        const btnClose3 = document.querySelector('.btn-cross3');
+
+        btnClose3.addEventListener('click', () => email.remove());
+
+      })
+
+      btnList.addEventListener('click', async e => {
+        e.preventDefault();
+
+        const listOfFollowingUrl = `http://146.185.154.90:8000/blog/koreicnurs@gmail.com/subscribe/`;
+
+        const resp = await fetch(listOfFollowingUrl);
+        const list = await resp.json();
+
+        div.className = 'modal';
+        div.innerHTML = `
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">List of subscribers</h5>
+                        <button type="button" class="btn-close btn-cross2" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="list-of-subs mb-3">
+                        </div>
+                      </div>
+                    </div>
+                  </div>`;
+
+        div.style.display = 'block';
+
+        document.body.querySelector('.container-profile').append(div);
+
+        const listOfSubs = document.querySelector('.list-of-subs');
+
+        const btnClose2 = document.querySelector('.btn-cross2');
+
+        btnClose2.addEventListener('click', () => div.remove());
+
+        const btnSendUserInfo = document.querySelector('.btn-send');
+
+        for (let l of list) {
+          let div = document.createElement('div');
+          let p = document.createElement('p');
+
+
+          p.className = 'sub';
+          p.innerHTML = `email: <b>${l.email}</b>`;
+
+          listOfSubs.append(p);
+        }
+
+      })
+
+      btnEdit.addEventListener('click', async e => {
+
+        e.preventDefault();
+
+        modal.className = 'modal';
+        modal.innerHTML = `
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Edit Profile</h5>
+                        <button type="button" class="btn-close btn-cross" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="input-group mb-3">
+                          <input type="text" class="form-control first-name" placeholder="First name" aria-label="Firstname">
+                          <input type="text" class="form-control last-name" placeholder="Last name" aria-label="Lastnamever">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary button-close" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary btn-send">Save changes</button>
+                      </div>
+                    </div>
+                  </div>`;
+
+        modal.style.display = 'block';
+
+        document.body.querySelector('.container-profile').append(modal);
+
+        const btnClose = document.querySelector('.button-close');
+        const btnClose2 = document.querySelector('.btn-cross');
+        const firstName = document.querySelector('.first-name');
+        const lastName = document.querySelector('.last-name');
+
+        btnClose.addEventListener('click', () => modal.remove());
+        btnClose2.addEventListener('click', () => modal.remove());
+
+        const btnSendUserInfo = document.querySelector('.btn-send');
+
+        btnSendUserInfo.addEventListener('click', e => {
+          e.preventDefault();
+
+          const body = new URLSearchParams();
+
+          body.append('firstName', userFirstName.innerHTML = `${firstName.value}`);
+
+          body.append('lastName', userLastName.innerHTML = `${lastName.value}`);
+
+          fetch('http://146.185.154.90:8000/blog/koreicnurs@gmail.com/profile', {
+            method: 'POST',
+            body
+          });
+
+          modal.style.display = 'none';
+
+        })
+
+      })
+
+      const btnSend = document.querySelector('.btn-send-post');
+      const textProfile = document.querySelector('.text-profile');
+
+      btnSend.addEventListener('click', async e => {
+        e.preventDefault();
+
+        const body = new URLSearchParams();
+
+        body.append('message', textProfile.value);
+
+        fetch('http://146.185.154.90:8000/blog/koreicnurs@gmail.com/posts', {
+          method: 'POST',
+          body
+        });
+
+      })
+
+      await postMessages();
+
+      loader.style.display = 'none';
+    }
+
+    const postMessages = async () => {
+
+      const postsUrl = `http://146.185.154.90:8000/blog/koreicnurs@gmail.com/posts`;
+
+      const resp = await fetch(postsUrl);
+      const arrayPost = await resp.json();
+
+      for (let array of arrayPost) {
+
+        let blockPost =
+          `
+            <div class="card" style="width: 100%;">
+              <div class="card-body">
+                <h5 class="card-title">${array.user.firstName}</h5>
+                <h5 class="card-title">${array.user.lastName}</h5>
+                <p class="card-text">${array.message}</p>
+              </div>
+            </div>
+            `;
+
+        document.body.querySelector('.block-post').insertAdjacentHTML('beforeEnd', blockPost);
+
+        lastDate = arrayPost[arrayPost.length - 1].datetime;
+
+        await getPostLastDate(lastDate, array)
+
+      }
+      setInterval(await getPostLastDate, 6000)
+    }
+
+    const getPostLastDate = async (date, array) => {
+
+      const getLastUrl = `http://146.185.154.90:8000/blog/koreicnurs@gmail.com/posts?datetime=${lastDate}`;
+
+      const res = await fetch(getLastUrl);
+      const last = await res.json();
+
+      if (last.length > 0) {
+        lastDate = last[last.length - 1].datetime;
+
+        for (let array of last) {
+
+          let blockPost =
+            `
+            <div class="card" style="width: 100%;">
+              <div class="card-body">
+                <h5 class="card-title">${array.user.firstName}</h5>
+                <h5 class="card-title">${array.user.lastName}</h5>
+                <p class="card-text">${array.message}</p>
+              </div>
+            </div>
+            `;
+
+          document.body.querySelector('.block-post').insertAdjacentHTML('beforeEnd', blockPost);
+        }
+
+      } else {
+        return
+      }
+    }
+
+    getProfile();
+  </script>
+</body>
+
+</html>
